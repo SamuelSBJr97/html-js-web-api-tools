@@ -1,6 +1,6 @@
 {
-  "name": "Autenticação e Tabela",
-  "short_name": "TabelaPWA",
+  "name": "Tabela Vue.js com DataTables",
+  "short_name": "TabelaVue",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
