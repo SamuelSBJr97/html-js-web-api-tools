@@ -19,7 +19,7 @@
 </head>
 
 <body>
-    <div id="app" class="container mt-5">
+    <div id="app" class="container-responsive p-5">
         <h1 class="mb-4">Exibir Tabela com Vue.js, DataTables e Bootstrap</h1>
 
         <!-- Campo para indicar qual o endpoint -->
@@ -34,18 +34,25 @@
             <button @click="fetchData" class="btn btn-primary">Buscar</button>
         </div>
 
+        <!-- Indicador de carregamento -->
+        <div v-if="isLoading" class="text-center my-3">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+        </div>
+
         <!-- Tabela para DataTables -->
-        <table id="dataTable" class="table table-striped table-bordered table-responsive" style="width:100%">
+        <table id="dataTable" class="table-striped table-bordered table-responsive" style="width:100%">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th v-for="(value, key) in data[0]" :key="key">{{ key }}</th>
+                    <th v-for="(value, key) in dataColumns">{{ value }}</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="(item, index) in data" :key="index">
                     <td>{{ index + 1 }}</td>
-                    <td v-for="(value, key) in item" :key="key">{{ value }}</td>
+                    <td v-for="column in dataColumns" :key="column">{{ item[column] || '' }}</td>
                 </tr>
             </tbody>
         </table>
@@ -77,12 +84,15 @@
                 data() {
                     return {
                         data: [], // Armazena os dados da API
+                        dataColumns: [], // Armazena os nomes das colunas
                         endpoint: 'https://servicodados.ibge.gov.br/api/v1/localidades/estados/@searchQuery/distritos',
-                        searchQuery: 'SP' // Armazena o texto de busca
+                        searchQuery: 'SP', // Armazena o texto de busca
+                        isLoading: false,
                     };
                 },
                 methods: {
                     async fetchData() {
+                        this.isLoading = true;
                         try {
                             let search = this.endpoint.replaceAll('@searchQuery', this.searchQuery);
 
@@ -99,7 +109,11 @@
                             }
 
                             // Armazena os dados no array
-                            this.data = _data;
+                            this.data = _data.map(item => this.flattenObject(item));
+
+                            this.dataColumns = Array.from(
+                                new Set(this.data.flatMap(item => Object.keys(item)))
+                            );
 
                             this.$nextTick(() => {
                                 if ($.fn.DataTable.isDataTable('#dataTable')) {
@@ -107,46 +121,58 @@
                                     $('#dataTable').DataTable().destroy();
                                 }
 
-                                if (!$.fn.DataTable.isDataTable('#dataTable')) {
-                                    // Inicializa o DataTable
-                                    $('#dataTable').DataTable({
-                                        responsive: true, // Torna a tabela responsiva
-                                        paging: false, // Ativa a paginação
-                                        searching: true, // Ativa o campo de busca
-                                        ordering: true, // Ativa a ordenação
-                                        lengthChange: true, // Ativa a opção de escolher a quantidade de registros por página
-                                        info: true, // Ativa a exibição de informações
-                                        autoWidth: true, // Ativa a largura automática
-                                        dom: 'Bfrtip', // Adiciona os botões de exportação e o campo de busca
-                                        buttons: [
-                                            {
-                                                extend: 'copy',
-                                                text: 'Copiar'
-                                            },
-                                            {
-                                                extend: 'csv',
-                                                text: 'Exportar CSV'
-                                            },
-                                            {
-                                                extend: 'excel',
-                                                text: 'Exportar Excel'
-                                            },
-                                            {
-                                                extend: 'pdf',
-                                                text: 'Exportar PDF'
-                                            },
-                                            {
-                                                extend: 'print',
-                                                text: 'Imprimir'
-                                            }
-                                        ]
-                                    });
-                                }
+                                $('#dataTable').DataTable({
+                                    responsive: true, // Torna a tabela responsiva
+                                    paging: false, // Ativa a paginação
+                                    searching: true, // Ativa o campo de busca
+                                    ordering: true, // Ativa a ordenação
+                                    lengthChange: true, // Ativa a opção de escolher a quantidade de registros por página
+                                    info: true, // Ativa a exibição de informações
+                                    autoWidth: true, // Ativa a largura automática
+                                    dom: 'Bfrtip', // Adiciona os botões de exportação e o campo de busca
+                                    buttons: [
+                                        {
+                                            extend: 'copy',
+                                            text: 'Copiar'
+                                        },
+                                        {
+                                            extend: 'csv',
+                                            text: 'Exportar CSV'
+                                        },
+                                        {
+                                            extend: 'excel',
+                                            text: 'Exportar Excel'
+                                        },
+                                        {
+                                            extend: 'pdf',
+                                            text: 'Exportar PDF'
+                                        },
+                                        {
+                                            extend: 'print',
+                                            text: 'Imprimir'
+                                        }
+                                    ]
+                                });
                             }); // Aguarda o Vue.js atualizar o DOM
                         } catch (error) {
                             alert(error.message);
+                        } finally {
+                            this.isLoading = false;
                         }
                     },
+                    flattenObject(obj, parentKey = '', result = {}) {
+                        for (let key in obj) {
+                            if (obj.hasOwnProperty(key)) {
+                                const newKey = parentKey ? `${parentKey}.${key}` : key;
+                                if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                                    this.flattenObject(obj[key], newKey, result);
+                                } else {
+                                    result[newKey] = obj[key];
+                                }
+                            }
+                        }
+                        return result;
+                    }
                 }
             });
 
