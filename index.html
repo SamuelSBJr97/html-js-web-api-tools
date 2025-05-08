@@ -19,123 +19,34 @@
 </head>
 
 <body>
-    <div id="app" class="container-responsive p-5">
-        <h1 class="mb-4">Exibir Tabela com Vue.js e Bootstrap</h1>
-
-        <!-- Campo para indicar qual o endpoint -->
-        <div class="mb-3 d-flex">
-            <input type="text" v-model="endpoint" class="form-control me-2" placeholder="Digite a URL da API...">
+    <div class="container">
+        <div class="jumbotron">
+            <h1>Exemplos de códigos em diferentes frameworks</h1>
         </div>
-
-        <!-- Campo de busca e botão -->
-        <div class="mb-3 d-flex">
-            <input type="text" v-model="filtro" class="form-control me-2" placeholder="Digite para buscar na API...">
-            <button @click="fetchData" class="btn btn-primary">Buscar</button>
-        </div>
-
-        <!-- Indicador de carregamento -->
-        <div v-if="isLoading" class="text-center my-3">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Carregando...</span>
+        <div class="row">
+            <div class="col-md-4">
+                <h2>Vue.js</h2>
+                <p><a href="vuejs/api-table.html" class="btn btn-primary">Exibir Tabela com Vue.js e Bootstrap</a></p>
+            </div>
+            <div class="col-md-4">
+                <h2>React</h2>
+                <p><a href="react/api-table.html" class="btn btn-primary">Exibir Tabela com React e Bootstrap</a></p>
+            </div>
+            <div class="col-md-4">
+                <h2>Angular</h2>
+                <p><a href="angular/api-table.html" class="btn btn-primary">Exibir Tabela com Angular e Bootstrap</a>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h2>jQuery</h2>
+                <p><a href="jquery/api-table.html" class="btn btn-primary">Exibir Tabela com jQuery e Bootstrap</a></p>
             </div>
         </div>
 
-        <!-- Tabela para DataTables -->
-        <table id="dataTable" class="table-striped table-bordered table-responsive table" style="width:100%" v-cloak>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th v-for="(value, key) in dataColumns">{{ value }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(item, index) in data" :key="index">
-                    <td>{{ index + 1 }}</td>
-                    <td v-for="column in dataColumns" :key="column">{{ item[column] || '' }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Vue.js -->
-    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const app = Vue.createApp({
-                data() {
-                    return {
-                        data: [], // Armazena os dados da API
-                        dataColumns: [], // Armazena os nomes das colunas
-                        endpoint: 'https://servicodados.ibge.gov.br/api/v1/localidades/estados/@filtro/distritos',
-                        filtro: 'SP',
-                        isLoading: false,
-                    };
-                },
-                methods: {
-                    async fetchData() {
-                        this.isLoading = true;
-                        try {
-                            let search = this.endpoint.replaceAll('@filtro', this.filtro);
-
-                            // Faz a requisição para a API
-                            const response = await fetch(search);
-                            if (!response.ok) {
-                                throw new Error('Erro ao buscar dados da API');
-                            }
-
-                            let _data = await response.json();
-
-                            if (!Array.isArray(_data)) {
-                                _data = [_data];
-                            }
-
-                            _data = _data.map(item => this.flattenObject(item));
-
-                            let _dataColumns = Array.from(
-                                new Set(_data.flatMap(item => Object.keys(item)))
-                            );
-
-                            this.dataColumns = _dataColumns;
-                            this.data = _data;
-                        } catch (error) {
-                            alert(error.message);
-                        } finally {
-                            this.isLoading = false;
-                        }
-                    },
-                    flattenObject(obj, parentKey = '', result = {}) {
-                        for (let key in obj) {
-                            if (obj.hasOwnProperty(key)) {
-                                const newKey = parentKey ? `${parentKey}.${key}` : key;
-                                if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-                                    this.flattenObject(obj[key], newKey, result);
-                                } else {
-                                    result[newKey] = obj[key];
-                                }
-                            }
-                        }
-                        return result;
-                    }
-                }
-            });
-
-            const _app = app.mount('#app');
-
-            _app.fetchData();
-        });
-    </script>
-    <script>
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("./service-worker.js")
-                .then(() => console.log("Service Worker registrado com sucesso."))
-                .catch(error => console.error("Falha ao registrar o Service Worker:", error));
-        }
-    </script>
+        <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
